@@ -35,7 +35,7 @@ pushd "${PWD}"/ipsec-addon > /dev/null
   bosh upload-release ipsec-*.tgz
 popd
 
-vars_store="${PWD}"/deployment/"${VARS_STORE_FILE}"
+vars_store="${PWD}"/vars-store/"${VARS_STORE_FILE}"
 manifest="${PWD}"/deployment/"${MANIFEST_FILE}"
 
 bosh update-runtime-config -n --vars-store "${vars_store}" "${manifest}"
