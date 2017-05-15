@@ -2,6 +2,7 @@
 
 set -euo pipefail
 
+
 # set bosh target
 function setup_bosh_env_vars() {
   pushd "bbl-state/${BBL_STATE_DIR}"
@@ -12,13 +13,29 @@ function setup_bosh_env_vars() {
   popd
 }
 
+function commit_vars_store {
+  pushd vars-store
+    if [[ -n $(git status --porcelain) ]]; then
+      git config user.name "CI Bot"
+      git config user.email "pivotal-c2c-eng@pivotal.io"
+      git add "${VARS_STORE_FILE}"
+      git commit -m "Update vars-store after deploy"
+    fi
+  popd
+
+  shopt -s dotglob
+  cp -R vars-store/* updated-vars-store/
+}
+
+trap commit_vars_store EXIT
+
 setup_bosh_env_vars
 
 pushd "${PWD}"/ipsec-addon > /dev/null
   bosh upload-release ipsec-*.tgz
 popd
 
-vars_store="${PWD}"/pcf-networking-deployments/environments/"${ENVIRONMENT}"/vars-store.yml
-manifest="${PWD}"/pcf-networking-deployments/environments/"${ENVIRONMENT}"/ipsec-addon.yml
+vars_store="${PWD}"/deployment/"${VARS_STORE_FILE}"
+manifest="${PWD}"/deployment/"${MANIFEST_FILE}"
 
 bosh update-runtime-config -n --vars-store "${vars_store}" "${manifest}"
