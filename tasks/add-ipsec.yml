@@ -15,7 +15,7 @@ inputs:
   - name: pcf-networking-ci
 
 outputs:
-- name: updated-vars-store
+  - name: updated-vars-store
 
 run:
   path: pcf-networking-ci/tasks/add-ipsec
