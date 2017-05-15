@@ -3,7 +3,7 @@ image_resource:
   type: docker-image
   source:
     repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
-    tag: v2.0.0
+    tag: v1.0.0
 
 platform: linux
 
