@@ -21,4 +21,4 @@ popd
 vars_store="${PWD}"/pcf-networking-deployments/environments/"${ENVIRONMENT}"/vars-store.yml
 manifest="${PWD}"/pcf-networking-deployments/environments/"${ENVIRONMENT}"/ipsec-addon.yml
 
-bosh update-runtime-config --vars-store "${vars_store}" "${manifest}"
+bosh update-runtime-config -n --vars-store "${vars_store}" "${manifest}"
