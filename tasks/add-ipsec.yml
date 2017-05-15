@@ -1,0 +1,19 @@
+---
+image_resource:
+  type: docker-image
+  source: { repository: c2cnetworking/deploy }
+
+platform: linux
+
+inputs:
+  - name: ipsec-addon
+  - name: bbl-state
+  - name: pcf-networking-deployments
+  - name: pcf-networking-ci
+
+run:
+  path: pcf-networking-ci/tasks/add-ipsec
+
+params:
+  ENVIRONMENT: ~
+  BBL_STATE_DIR: ~

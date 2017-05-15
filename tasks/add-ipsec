@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# set bosh target
+function setup_bosh_env_vars() {
+  pushd "bbl-state/${BBL_STATE_DIR}"
+    export BOSH_CA_CERT="$(bbl director-ca-cert)"
+    export BOSH_ENVIRONMENT=$(bbl director-address)
+    export BOSH_CLIENT=$(bbl director-username)
+    export BOSH_CLIENT_SECRET=$(bbl director-password)
+  popd
+}
+
+setup_bosh_env_vars
+
+pushd "${PWD}"/ipsec-addon > /dev/null
+  bosh upload-release
+popd
+
+vars_store="${PWD}"/pcf-networking-deployments/environments/"${ENVIRONMENT}"/vars-store.yml
+manifest="${PWD}"/pcf-networking-deployments/environments/"${ENVIRONMENT}"/ipsec-addon.yml
+
+bosh update-runtime-config --vars-store "${vars_store}" "${manifest}"
