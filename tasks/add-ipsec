@@ -15,7 +15,7 @@ function setup_bosh_env_vars() {
 setup_bosh_env_vars
 
 pushd "${PWD}"/ipsec-addon > /dev/null
-  bosh upload-release
+  bosh upload-release ipsec-*.tgz
 popd
 
 vars_store="${PWD}"/pcf-networking-deployments/environments/"${ENVIRONMENT}"/vars-store.yml
