@@ -1,7 +1,9 @@
 ---
 image_resource:
   type: docker-image
-  source: { repository: c2cnetworking/deploy }
+  source:
+    repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
+    tag: v2.0.0
 
 platform: linux
 
