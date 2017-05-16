@@ -1,3 +1,4 @@
+---
 groups:
 - name: pcf-networking
   jobs:
@@ -5,6 +6,7 @@ groups:
   - kippah-bbl-destroy
   - kippah-deploy
   - kippah-test
+  - kippah-cats
   - delete-kippah-deployment
 
 resource_types:
@@ -126,6 +128,24 @@ jobs:
         BBL_STATE_DIR: environments/kippah/
       input_mapping:
         bbl-state: container-networking-pcf-deployments
+    - task: ipsec-addon
+      file: pcf-container-networking-ci/tasks/add-ipsec.yml
+      params:
+        BBL_STATE_DIR: environments/kippah/
+        MANIFEST_FILE: environments/kippah/ipsec-addon.yml
+        VARS_STORE_FILE: environments/kippah/vars-store.yml
+      input_mapping:
+        bbl-state: container-networking-pcf-deployments
+        deployment: container-networking-pcf-deployments
+        ipsec-addon: ipsec-addon-master
+        pcf-networking-ci: pcf-container-networking-ci
+        pcf-networking-deployments: container-networking-pcf-deployments
+        vars-store: container-networking-pcf-deployments
+      ensure:
+        put: container-networking-pcf-deployments
+        params:
+          rebase: true
+          repository: updated-vars-store
     - task: collect-ops-files
       file: container-networking-ci/tasks/collect-ops-files.yml
       params:
@@ -142,7 +162,7 @@ jobs:
         VARS_STORE_FILE: environments/kippah/vars-store.yml
       input_mapping:
         bbl-state: container-networking-pcf-deployments
-        vars-store: container-networking-pcf-deployments
+        vars-store: updated-vars-store
         release: cf-networking-master
       ensure:
         put: container-networking-pcf-deployments
