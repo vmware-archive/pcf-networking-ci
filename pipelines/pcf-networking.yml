@@ -215,12 +215,14 @@ jobs:
       - get: container-networking-pcf-deployments
     - task: copy-config
       file: container-networking-ci/tasks/copy-config.yml
+      input_mapping:
+        container-networking-deployments: container-networking-pcf-deployments
       params:
         ENVIRONMENT: kippah
     - task: cats
       file: cats-concourse-task/task.yml
       params:
-        NODES: 16
+        NODES: 12
 
   - name: delete-kippah-deployment
     public: true
