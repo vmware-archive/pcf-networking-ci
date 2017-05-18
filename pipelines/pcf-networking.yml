@@ -17,20 +17,20 @@ resource_types:
     tag: latest-final
 
 resources:
-  - name: pcf-container-networking-ci
+  - name: pcf-networking-ci
     type: git
     source:
-      uri: https://github.com/pivotal-cf/pcf-container-networking-ci
-  - name: container-networking-ci
+      uri: https://github.com/pivotal-cf/pcf-networking-ci
+  - name: cf-networking-ci
     type: git
     source:
-      uri: https://github.com/cloudfoundry-incubator/container-networking-ci
-  - name: container-networking-pcf-deployments
+      uri: https://github.com/cloudfoundry-incubator/cf-networking-ci
+  - name: pcf-networking-deployments
     type: git
     source:
-      uri: "git@github.com:pivotal-cf/container-networking-pcf-deployments.git"
+      uri: "git@github.com:pivotal-cf/pcf-networking-deployments.git"
       branch: master
-      private_key: {{container-networking-pcf-deployments-push-key}}
+      private_key: {{pcf-networking-deployments-push-key}}
   - name: cats-concourse-task
     type: git
     source:
@@ -46,7 +46,6 @@ resources:
     source:
       uri: https://github.com/cloudfoundry/cf-deployment-concourse-tasks
       branch: master
-      tag_filter: v1.*
   - name: cf-deployment
     type: git
     source:
@@ -69,7 +68,7 @@ jobs:
     plan:
     - aggregate:
       - get: cf-deployment-concourse-tasks
-      - get: container-networking-pcf-deployments
+      - get: pcf-networking-deployments
     - task: bbl-up
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       params:
@@ -84,9 +83,9 @@ jobs:
         LB_DOMAIN: kippah.c2c.cf-app.com
         BBL_ENV_NAME: kippah
       input_mapping:
-        bbl-state: container-networking-pcf-deployments
+        bbl-state: pcf-networking-deployments
       ensure:
-        put: container-networking-pcf-deployments
+        put: pcf-networking-deployments
         params:
           repository: updated-bbl-state
           rebase: true
@@ -96,15 +95,15 @@ jobs:
     plan:
     - aggregate:
       - get: cf-deployment-concourse-tasks
-      - get: container-networking-pcf-deployments
+      - get: pcf-networking-deployments
     - task: bbl-destroy
       file: cf-deployment-concourse-tasks/bbl-destroy/task.yml
       params:
         BBL_STATE_DIR: environments/kippah/
       input_mapping:
-        bbl-state: container-networking-pcf-deployments
+        bbl-state: pcf-networking-deployments
       ensure:
-        put: container-networking-pcf-deployments
+        put: pcf-networking-deployments
         params:
           repository: updated-bbl-state
           rebase: true
@@ -113,10 +112,10 @@ jobs:
     serial_groups: [kippah]
     plan:
     - aggregate:
-      - get: container-networking-ci
-      - get: pcf-container-networking-ci
+      - get: cf-networking-ci
+      - get: pcf-networking-ci
       - get: cf-deployment-concourse-tasks
-      - get: container-networking-pcf-deployments
+      - get: pcf-networking-deployments
       - get: cf-deployment
       - get: cf-networking-master
         trigger: true
@@ -127,32 +126,32 @@ jobs:
       params:
         BBL_STATE_DIR: environments/kippah/
       input_mapping:
-        bbl-state: container-networking-pcf-deployments
+        bbl-state: pcf-networking-deployments
     - task: ipsec-addon
-      file: pcf-container-networking-ci/tasks/add-ipsec.yml
+      file: pcf-networking-ci/tasks/add-ipsec.yml
       params:
         BBL_STATE_DIR: environments/kippah/
         MANIFEST_FILE: environments/kippah/ipsec-addon.yml
         VARS_STORE_FILE: environments/kippah/vars-store.yml
       input_mapping:
-        bbl-state: container-networking-pcf-deployments
-        deployment: container-networking-pcf-deployments
+        bbl-state: pcf-networking-deployments
+        deployment: pcf-networking-deployments
         ipsec-addon: ipsec-addon-master
-        pcf-networking-ci: pcf-container-networking-ci
-        pcf-networking-deployments: container-networking-pcf-deployments
-        vars-store: container-networking-pcf-deployments
+        pcf-networking-ci: pcf-networking-ci
+        pcf-networking-deployments: pcf-networking-deployments
+        vars-store: pcf-networking-deployments
       ensure:
-        put: container-networking-pcf-deployments
+        put: pcf-networking-deployments
         params:
           rebase: true
           repository: updated-vars-store
     - task: collect-ops-files
-      file: container-networking-ci/tasks/collect-ops-files.yml
+      file: cf-networking-ci/tasks/collect-ops-files.yml
       params:
         ENVIRONMENT_NAME: kippah
       input_mapping:
         cf-networking-release: cf-networking-master
-        deployments-repo: container-networking-pcf-deployments
+        deployments-repo: pcf-networking-deployments
     - task: deploy-cf
       file: cf-deployment-concourse-tasks/bosh-deploy-with-created-release/task.yml
       params:
@@ -161,11 +160,12 @@ jobs:
         OPS_FILES: gcp.yml use-3-azs-for-router.yml use-compiled-releases.yml cf-networking.yml silk.yml opsfile.yml
         VARS_STORE_FILE: environments/kippah/vars-store.yml
       input_mapping:
-        bbl-state: container-networking-pcf-deployments
+        bbl-state: pcf-networking-deployments
         vars-store: updated-vars-store
+        vars-files: updated-vars-store
         release: cf-networking-master
       ensure:
-        put: container-networking-pcf-deployments
+        put: pcf-networking-deployments
         params:
           repository: updated-vars-store
           rebase: true
@@ -175,27 +175,27 @@ jobs:
         BBL_STATE_DIR: environments/kippah/
         CLEAN_ALL: false
       input_mapping:
-        bbl-state: container-networking-pcf-deployments
+        bbl-state: pcf-networking-deployments
 
   - name: kippah-test
     serial_groups: [kippah]
     plan:
     - aggregate:
-      - get: container-networking-pcf-deployments
+      - get: pcf-networking-deployments
         passed: [kippah-deploy]
       - get: cf-networking-master
         passed: [kippah-deploy]
         trigger: true
-      - get: container-networking-ci
+      - get: cf-networking-ci
       - get: cf-deployment
         passed: [kippah-deploy]
         trigger: true
     - task: acceptance-tests
-      file: container-networking-ci/tasks/acceptance-tests.yml
+      file: cf-networking-ci/tasks/acceptance-tests.yml
       input_mapping:
         cf-networking: cf-networking-master
-        test-config: container-networking-pcf-deployments
-        vars-store: container-networking-pcf-deployments
+        test-config: pcf-networking-deployments
+        vars-store: pcf-networking-deployments
       params:
         ENVIRONMENT_NAME: kippah
 
@@ -203,7 +203,7 @@ jobs:
     serial_groups: [kippah]
     plan:
     - aggregate:
-      - get: container-networking-ci
+      - get: cf-networking-ci
       - get: cf-acceptance-tests
       - get: cats-concourse-task
       - get: cf-networking-master
@@ -212,11 +212,11 @@ jobs:
       - get: cf-deployment
         passed: [kippah-test]
         trigger: true
-      - get: container-networking-pcf-deployments
+      - get: pcf-networking-deployments
     - task: copy-config
-      file: container-networking-ci/tasks/copy-config.yml
+      file: cf-networking-ci/tasks/copy-config.yml
       input_mapping:
-        container-networking-deployments: container-networking-pcf-deployments
+        cf-networking-deployments: pcf-networking-deployments
       params:
         ENVIRONMENT: kippah
     - task: cats
@@ -229,11 +229,11 @@ jobs:
     serial_groups: [kippah]
     plan:
     - aggregate:
-      - get: container-networking-pcf-deployments
+      - get: pcf-networking-deployments
       - get: cf-deployment-concourse-tasks
     - task: delete-deployment
       file: cf-deployment-concourse-tasks/bosh-delete-deployment/task.yml
       params:
         BBL_STATE_DIR: environments/kippah/
       input_mapping:
-        bbl-state: container-networking-pcf-deployments
+        bbl-state: pcf-networking-deployments

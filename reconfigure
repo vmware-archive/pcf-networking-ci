@@ -6,5 +6,5 @@ export TARGET=c2c
 
 fly -t $TARGET \
   set-pipeline -p "${PIPELINE}" \
-  -c "${HOME}"/workspace/pcf-container-networking-ci/pipelines/"${PIPELINE}".yml \
-  -l "${HOME}"/workspace/container-networking-pcf-deployments/pipeline-credentials.yml
+  -c "${HOME}"/workspace/pcf-networking-ci/pipelines/"${PIPELINE}".yml \
+  -l "${HOME}"/workspace/pcf-networking-deployments/pipeline-credentials.yml
